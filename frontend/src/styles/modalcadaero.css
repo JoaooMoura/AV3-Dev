@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+}
+
+.modal-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
+  padding: 28px;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: slideIn 0.3s ease-out;
+  overflow-y: auto;
+  font-family: 'Poppins', sans-serif;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.modal-drawer h2 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 1.4rem;
+  color: #FF6600;
+  font-weight: 600;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.modal-form label {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.modal-form input,
+.modal-form select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  outline: none;
+  font-size: 1rem;
+  transition: border-color .2s ease, box-shadow .2s ease;
+  font-family: inherit;
+}
+
+.modal-form input:focus,
+.modal-form select:focus {
+  outline: none;
+  border-color: #FF6600;
+  box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.25);
+}
+
+
+.modal-form select {
+  cursor: pointer;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  gap: 12px;
+}
+
+.btn-cancel,
+.btn-save {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+  font-family: inherit;
+}
+
+.btn-cancel {
+  background-color: #e9ecef;
+  color: #333;
+}
+
+.btn-cancel:hover {
+  background-color: #dee2e6;
+}
+
+.btn-save {
+  background-color: #FF6600;
+  color: white;
+}
+
+.btn-save:hover {
+  background-color: #E65C00;
+}

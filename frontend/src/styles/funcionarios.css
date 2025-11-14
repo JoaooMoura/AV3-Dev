@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+.funcionario-container {
+  padding: 20px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.btn-adicionar {
+  background-color: #FF6600;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-adicionar:hover {
+  background-color: #E65C00;
+}
+
+.btn-adicionar svg {
+  font-size: 1.2rem;
+}
+
+.funcionario-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.funcionario-table th,
+.funcionario-table td {
+  border: 1px solid #e0e0e0;
+  padding: 12px 15px;
+  text-align: left;
+}
+
+.funcionario-table th {
+  background-color: #ff6200;
+  color: #333;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nivel-administrador {
+  color: #FF6600;
+  font-weight: 600;
+}
+
+.nivel-engenheiro {
+  color: #00aa55;
+  font-weight: 600;
+}
+
+.nivel-operador {
+  color: #aa5500;
+  font-weight: 600;
+}
+
+.funcionario-table tr:hover {
+  background-color: #fffcf8;
+}
+
+.btn-excluir {
+  background-color: transparent;
+  color: #c82333;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: 0.2s;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-excluir:hover {
+  background-color: #dc3545;
+  color: #fff;
+}
