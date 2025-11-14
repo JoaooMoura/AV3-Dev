@@ -1,60 +1,75 @@
 import React, { useState } from 'react';
-import funcionariosData from '../mock/funcionarios.json';
 import '../styles/login.css';
+import { authService } from '../services/api';
 
-function Login({ onLogin }) {
-    const [usuario, setUsuario] = useState('');
-    const [senha, setSenha] = useState('');
-    const [error, setError] = useState('');
+export default function Login({ onLogin }) {
+  const [usuario, setUsuario] = useState('');
+  const [senha, setSenha] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const handleLogin = (e) => {
-        e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-        const user = funcionariosData.find(
-            (u) => u.usuario === usuario && u.senha === senha
-        );
+    try {
+      const response = await authService.login(usuario, senha);
+      const { token, funcionario } = response.data;
+      
+      onLogin({
+        id: funcionario.id,
+        nome: funcionario.nome,
+        usuario: funcionario.usuario,
+        nivelPermissao: funcionario.nivelPermissao,
+        nivel: funcionario.nivelPermissao.toLowerCase(),
+        permissao: funcionario.nivelPermissao.toLowerCase(),
+        token,
+      });
+    } catch (err) {
+      console.error('Erro no login:', err);
+      setError(err.response?.data?.error || 'Erro ao fazer login');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (user) {
-            setError('');
-            onLogin(user);
-        } else {
-            setError('Usuário ou senha inválidos');
-        }
-    };
-
-    return (
-        <div className="login-container">
-            <div className="logo">
-                AERO<span>CODE</span>
-            </div>
-            <div className="form-wrapper">
-                <h2>Login</h2>
-                <form onSubmit={handleLogin}>
-                    <label htmlFor="usuario">Usuário</label>
-                    <input
-                        id="usuario"
-                        type="text"
-                        value={usuario}
-                        onChange={(e) => setUsuario(e.target.value)}
-                        required
-                    />
-
-                    <label htmlFor="senha">Senha</label>
-                    <input
-                        id="senha"
-                        type="password"
-                        value={senha}
-                        onChange={(e) => setSenha(e.target.value)}
-                        required
-                    />
-
-                    {error && <div className="error">{error}</div>}
-
-                    <button type="submit">ENTRAR</button>
-                </form>
-            </div>
-        </div>
-    );
+  return (
+    <div className="login-container">
+      <div className="login-box">
+        <h1>AeroCode</h1>
+        <h2>Sistema de Gestão de Aeronaves</h2>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label>Usuário</label>
+            <input
+              type="text"
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="input-group">
+            <label>Senha</label>
+            <input
+              type="password"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          
+          {error && <div className="error-message">{error}</div>}
+          
+          <button type="submit" disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 }
-
-export default Login;

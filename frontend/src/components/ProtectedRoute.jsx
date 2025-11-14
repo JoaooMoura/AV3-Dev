@@ -6,9 +6,12 @@ function ProtectedRoute({ user, allowedRoles, children }) {
     return <Navigate to="/" />;
   }
 
-  if (!allowedRoles.includes(user.nivel)) {
+  const userRole = user.permissao || user.nivel;
+  
+  if (!allowedRoles.includes(userRole)) {
     return <Navigate to="/dashboard" />;
   }
+  
   return children;
 }
 

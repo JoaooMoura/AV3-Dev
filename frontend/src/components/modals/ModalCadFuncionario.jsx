@@ -1,73 +1,78 @@
 import React, { useState } from 'react';
+import { funcionarioService } from '../../services/api';
 import '../../styles/modalcadfuncionario.css';
-import funcionarios from '../../mock/funcionarios.json';
 
 function ModalCadFuncionario({ onClose }) {
   const [formData, setFormData] = useState({
-    id: '',
     nome: '',
     telefone: '',
     endereco: '',
     usuario: '',
     senha: '',
-    nivel: 'operador',
+    nivelPermissao: 'OPERADOR',
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
 
-    const novoFuncionario = {
-      id: formData.id,
-      nome: formData.nome,
-      telefone: formData.telefone,
-      usuario: formData.usuario,
-      senha: formData.senha,
-      endereco: formData.endereco,
-      nivel: formData.nivel,
-    };
+    // Validação básica
+    if (formData.senha.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
 
-    funcionarios.push(novoFuncionario);
+    try {
+      setLoading(true);
+      
+      const novoFuncionario = {
+        nome: formData.nome,
+        telefone: formData.telefone,
+        endereco: formData.endereco,
+        usuario: formData.usuario,
+        senha: formData.senha,
+        nivelPermissao: formData.nivelPermissao,
+      };
 
-    console.log('Mock atualizado:', funcionarios);
-
-    onClose();
+      await funcionarioService.criar(novoFuncionario);
+      
+      alert('Funcionário cadastrado com sucesso!');
+      onClose(true); // Passa true para indicar que houve sucesso
+    } catch (err) {
+      console.error('Erro ao cadastrar funcionário:', err);
+      setError(err.response?.data?.error || 'Erro ao cadastrar funcionário');
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
     <>
-      <div className="modal-overlay" onClick={onClose}></div>
+      <div className="modal-overlay" onClick={() => !loading && onClose()}></div>
 
       <div className="modal-drawer">
         <h2>Cadastro de Funcionário</h2>
 
-        <form className="modal-form" onSubmit={handleSubmit}>
-          <div className="form-row">
-            <div className="form-group">
-              <label>ID</label>
-              <input
-                type="text"
-                name="id"
-                placeholder="Ex: 01"
-                value={formData.id}
-                onChange={handleChange}
-                required
-              />
-            </div>
+        {error && <div className="error-message">{error}</div>}
 
-            <div className="form-group">
-              <label>Nome</label>
-              <input
-                type="text"
-                name="nome"
-                placeholder="Ex: João Silva"
-                value={formData.nome}
-                onChange={handleChange}
-                required
-              />
-            </div>
+        <form className="modal-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Nome</label>
+            <input
+              type="text"
+              name="nome"
+              placeholder="Ex: João Silva"
+              value={formData.nome}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
           </div>
 
           <div className="form-group">
@@ -79,6 +84,7 @@ function ModalCadFuncionario({ onClose }) {
               value={formData.telefone}
               onChange={handleChange}
               required
+              disabled={loading}
             />
           </div>
 
@@ -91,6 +97,7 @@ function ModalCadFuncionario({ onClose }) {
               value={formData.endereco}
               onChange={handleChange}
               required
+              disabled={loading}
             />
           </div>
 
@@ -103,6 +110,7 @@ function ModalCadFuncionario({ onClose }) {
               value={formData.usuario}
               onChange={handleChange}
               required
+              disabled={loading}
             />
           </div>
 
@@ -111,33 +119,45 @@ function ModalCadFuncionario({ onClose }) {
             <input
               type="password"
               name="senha"
-              placeholder="Digite uma senha"
+              placeholder="Digite uma senha (mínimo 6 caracteres)"
               value={formData.senha}
               onChange={handleChange}
               required
+              minLength="6"
+              disabled={loading}
             />
           </div>
 
           <div className="form-group">
             <label>Nível de Permissão</label>
             <select
-              name="nivel"
-              value={formData.nivel}
+              name="nivelPermissao"
+              value={formData.nivelPermissao}
               onChange={handleChange}
               required
+              disabled={loading}
             >
-              <option value="operador">Operador</option>
-              <option value="engenheiro">Engenheiro</option>
-              <option value="administrador">Administrador</option>
+              <option value="OPERADOR">Operador</option>
+              <option value="ENGENHEIRO">Engenheiro</option>
+              <option value="ADMINISTRADOR">Administrador</option>
             </select>
           </div>
 
           <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn-cancel">
+            <button 
+              type="button" 
+              onClick={() => onClose()} 
+              className="btn-cancel"
+              disabled={loading}
+            >
               Cancelar
             </button>
-            <button type="submit" className="btn-save">
-              Salvar
+            <button 
+              type="submit" 
+              className="btn-save"
+              disabled={loading}
+            >
+              {loading ? 'Salvando...' : 'Salvar'}
             </button>
           </div>
         </form>
