@@ -1,4 +1,4 @@
-````markdown
+
 # AV3 - Projeto Aerocode
 
 Aplicação web full-stack desenvolvida para a avaliação AV3 da FATEC. O projeto unifica trabalhos anteriores com integração real de banco de dados usando Prisma ORM e MySQL, apresentando um **Dashboard Completo** para Gestão de Aeronaves e **Monitoramento de Performance**.
