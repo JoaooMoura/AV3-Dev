@@ -1,11 +1,3 @@
-Com certeza\! Adicionei esses passos cruciais na seção de **Configuração do Banco de Dados**.
-
-Muitos erros acontecem justamente porque o serviço do MySQL não está rodando ou o banco ainda não foi criado.
-
-Aqui está o **README.md** atualizado e completo em Português:
-
------
-
 # AV3 - Projeto Aerocode
 
 Aplicação web full-stack desenvolvida para a avaliação AV3 da FATEC. O projeto unifica trabalhos anteriores com integração real de banco de dados usando Prisma ORM e MySQL, apresentando um **Dashboard Completo** para Gestão de Aeronaves e **Monitoramento de Performance**.
