@@ -1,91 +1,65 @@
-import React, { useState } from 'react';
-import '../../styles/modalcadaero.css'; 
+import { useState } from 'react'
+import { testeService } from '../../services/testeService'
+import '../../styles/modalcadetapa.css'
 
-function ModalRegistraTeste({ onClose, codigoAeronave }) {
-  const [formData, setFormData] = useState({
-    tipoTeste: 'eletrico', 
-    resultado: 'aprovado', 
-  });
+const ModalRegistraTeste = ({ aeronaveId, onClose }) => {
+    const [form, setForm] = useState({
+        tipo: 'ELETRICO',
+        resultado: 'APROVADO',
+    })
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const listaGeral = JSON.parse(localStorage.getItem('aeronaves')) || [];
-    const aeronaveIndex = listaGeral.findIndex(a => String(a.codigo) === String(codigoAeronave));
-
-    if (aeronaveIndex === -1) {
-      alert("Erro: Aeronave não encontrada. Não foi possível salvar o teste.");
-      return;
+    const handleChange = (e) => {
+        const { name, value } = e.target
+        setForm((prev) => ({ ...prev, [name]: value }))
     }
 
-    const novoTeste = {
-      id: `t${new Date().getTime()}`, 
-      tipo: formData.tipoTeste,
-      resultado: formData.resultado,
-      data: new Date().toLocaleDateString('pt-BR'), 
-    };
-
-    if (!listaGeral[aeronaveIndex].testes) {
-      listaGeral[aeronaveIndex].testes = [];
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        try {
+            await testeService.create({
+                tipo: form.tipo,
+                resultado: form.resultado,
+                aeronaveId,
+            })
+            onClose(true)
+        } catch (error) {
+            console.error('Erro ao registrar teste:', error)
+            alert('Erro ao registrar teste')
+        }
     }
-    listaGeral[aeronaveIndex].testes.push(novoTeste);
-    localStorage.setItem('aeronaves', JSON.stringify(listaGeral));
-    onClose();
-  };
 
-  return (
-    <>
-      <div className="modal-overlay" onClick={onClose}></div>
-
-      <div className="modal-drawer">
-        <h2>Registrar Novo Teste</h2>
-
-        <form className="modal-form" onSubmit={handleSubmit}>
-          
-          <div className="form-group">
-            <label>Código da Aeronave</label>
-            <input
-              type="text"
-              name="codigo"
-              value={codigoAeronave}
-              disabled
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Tipo de Teste</label>
-            <select name="tipoTeste" value={formData.tipoTeste} onChange={handleChange}>
-              <option value="eletrico">Elétrico</option>
-              <option value="hidraulico">Hidráulico</option>
-              <option value="aerodinamico">Aerodinâmico</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Resultado</label>
-            <select name="resultado" value={formData.resultado} onChange={handleChange}>
-              <option value="aprovado">Aprovado</option>
-              <option value="reprovado">Reprovado</option>
-            </select>
-          </div>
-
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn-cancel">
-              Cancelar
-            </button>
-            <button type="submit" className="btn-save">
-              Salvar
-            </button>
-          </div>
-        </form>
-      </div>
-    </>
-  );
+    return (
+        <div className="modal-overlay">
+            <div className="modal">
+                <h2>Registrar Teste</h2>
+                <form onSubmit={handleSubmit} className="modal-form">
+                    <label>
+                        Tipo de Teste
+                        <select name="tipo" value={form.tipo} onChange={handleChange}>
+                            <option value="ELETRICO">Elétrico</option>
+                            <option value="HIDRAULICO">Hidráulico</option>
+                            <option value="AERODINAMICO">Aerodinâmico</option>
+                        </select>
+                    </label>
+                    <label>
+                        Resultado
+                        <select name="resultado" value={form.resultado} onChange={handleChange} >
+                            <option value="APROVADO">Aprovado</option>
+                            <option value="REPROVADO">Reprovado</option>
+                        </select>
+                    </label>
+                    <div className="modal-actions">
+                        <button type="button" className="btn-secondary" onClick={() => onClose(false)}>
+                            Cancelar
+                        </button>
+                        <button type="submit" className="btn-primary">
+                            Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
 }
 
-export default ModalRegistraTeste;
+export default ModalRegistraTeste

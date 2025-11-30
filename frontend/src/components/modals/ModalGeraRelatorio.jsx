@@ -1,58 +1,45 @@
-import React, { useState } from 'react';
-import '../../styles/modalcadaero.css'; 
+import { useState } from 'react'
+import { metricasService } from '../../services/metricasService'
+import '../../styles/modalcadetapa.css'
 
-function ModalGeraRelatorio({ onClose, codigoAeronave }) {
-  const [nomeCliente, setNomeCliente] = useState('');
+const ModalGeraRelatorio = ({ onClose }) => {
+    const [metricas, setMetricas] = useState(null)
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Gerando relatório para:', codigoAeronave, 'Cliente:', nomeCliente);
-    
-    onClose();
-  };
+    const handleGerar = async () => {
+        try {
+            const dados = await metricasService.getAgregadas()
+            setMetricas(dados)
+        } catch (error) {
+            console.error('Erro ao carregar métricas:', error)
+            alert('Erro ao carregar métricas')
+        }
+    }
 
-  return (
-    <>
-      <div className="modal-overlay" onClick={onClose}></div>
-      <div className="modal-drawer">
-        <h2>Gerar Relatório</h2>
+    return (
+        <div className="modal-overlay">
+            <div className="modal">
+                <h2>Relatório de Métricas</h2>
+                <button className="btn-primary" onClick={handleGerar}>
+                    Carregar métricas
+                </button>
 
-        <form className="modal-form" onSubmit={handleSubmit}>
-          
-          <div className="form-group">
-            <label>Código da Aeronave</label>
-            <input
-              type="text"
-              name="codigo"
-              value={codigoAeronave}
-              disabled
-            />
-          </div>
+                {metricas && (
+                    <div className="metricas-relatorio">
+                        <p>Total de requisições: {metricas.totalRequisicoes}</p>
+                        <p>Latência média (ms): {metricas.latenciaMedia.toFixed(2)}</p>
+                        <p>Tempo processamento médio (ms): {metricas.tempoProcessamentoMedio.toFixed(2)}</p>
+                        <p>Tempo resposta médio (ms): {metricas.tempoRespostaMedio.toFixed(2)}</p>
+                    </div>
+                )}
 
-          <div className="form-group">
-            <label>Nome do Cliente</label>
-            <input
-              type="text"
-              name="nomeCliente"
-              value={nomeCliente}
-              onChange={(e) => setNomeCliente(e.target.value)}
-              placeholder="Ex: Companhia Aérea Global"
-              required
-            />
-          </div>
-
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn-cancel">
-              Cancelar
-            </button>
-            <button type="submit" className="btn-save">
-              Gerar
-            </button>
-          </div>
-        </form>
-      </div>
-    </>
-  );
+                <div className="modal-actions">
+                    <button className="btn-secondary" onClick={() => onClose(false)}>
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
 }
 
-export default ModalGeraRelatorio;
+export default ModalGeraRelatorio

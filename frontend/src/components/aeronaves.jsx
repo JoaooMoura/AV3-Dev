@@ -1,100 +1,98 @@
-import React, { useState, useEffect } from 'react';
-import { aeronaveService } from '../services/api';
-import ModalCadAero from './modals/ModalCadAero';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { aeronaveService } from '../services/aeronaveService';
+import ModalCadAero from './modals/ModalCadAero';
+import '../styles/aeronaves.css';
 
-export default function Aeronaves({ user }) {
-  const [aeronaves, setAeronaves] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [modalAberto, setModalAberto] = useState(false);
-  const navigate = useNavigate();
+const Aeronaves = () => {
+    const [aeronaves, setAeronaves] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showModalCad, setShowModalCad] = useState(false);
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    carregarAeronaves();
-  }, []);
+    const carregarAeronaves = async () => {
+        try {
+            setLoading(true);
+            const data = await aeronaveService.getAll();
+            setAeronaves(data);
+        } catch (error) {
+            console.error('Erro ao carregar aeronaves:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const carregarAeronaves = async () => {
-    try {
-      setLoading(true);
-      const response = await aeronaveService.listar();
-      setAeronaves(response.data);
-    } catch (err) {
-      console.error('Erro ao carregar aeronaves:', err);
-    } finally {
-      setLoading(false);
+    useEffect(() => {
+        carregarAeronaves();
+    }, []);
+
+    const handleNovaAeronave = () => {
+        setShowModalCad(true);
+    };
+
+    const handleVerDetalhes = (id) => {
+        navigate(`/aeronave/${id}`)
     }
-  };
+    const handleCloseModal = (atualizar) => {
+        setShowModalCad(false);
+        if (atualizar) {
+            carregarAeronaves();
+        }
+    };
 
-  const handleCriarAeronave = async (dados) => {
-    try {
-      await aeronaveService.criar(dados);
-      await carregarAeronaves();
-      setModalAberto(false);
-    } catch (err) {
-      alert(err.response?.data?.error || 'Erro ao criar aeronave');
+    if (loading) {
+        return <div className="aeronaves-container"><h1>Carregando...</h1></div>;
     }
-  };
 
-  const handleDeletarAeronave = async (id) => {
-    if (!window.confirm('Deseja realmente deletar esta aeronave?')) return;
-    
-    try {
-      await aeronaveService.deletar(id);
-      await carregarAeronaves();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Erro ao deletar aeronave');
-    }
-  };
-
-  const handleVerDetalhes = (codigo) => {
-    navigate(`/detalheAeronave/${codigo}`);
-  };
-
-  if (loading) return <div>Carregando...</div>;
-
-  return (
-    <div className="aeronaves-container">
-      <div className="header">
-        <h1>Gerenciamento de Aeronaves</h1>
-        {(user.permissao === 'administrador' || user.permissao === 'engenheiro') && (
-          <button onClick={() => setModalAberto(true)}>
-            Nova Aeronave
-          </button>
-        )}
-      </div>
-
-      <div className="aeronaves-grid">
-        {aeronaves.map((aeronave) => (
-          <div key={aeronave.id} className="aeronave-card">
-            <h3>{aeronave.codigo}</h3>
-            <p><strong>Modelo:</strong> {aeronave.modelo}</p>
-            <p><strong>Tipo:</strong> {aeronave.tipo}</p>
-            <p><strong>Capacidade:</strong> {aeronave.capacidade}</p>
-            <p><strong>Alcance:</strong> {aeronave.alcance} km</p>
-            
-            <div className="card-actions">
-              <button onClick={() => handleVerDetalhes(aeronave.codigo)}>
-                Ver Detalhes
-              </button>
-              {user.permissao === 'administrador' && (
-                <button 
-                  className="btn-delete"
-                  onClick={() => handleDeletarAeronave(aeronave.id)}
-                >
-                  Deletar
+    return (
+        <div className="aeronaves-container">
+            <div className="aeronaves-header">
+                <h1>Aeronaves</h1>
+                <button className="btn-primary" onClick={handleNovaAeronave}>
+                    Nova Aeronave
                 </button>
-              )}
             </div>
-          </div>
-        ))}
-      </div>
+            {aeronaves.length === 0 ? (
+                <p>Nenhuma aeronave cadastrada.</p>
+            ) : (
+                <table className="aeronaves-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Modelo</th>
+                            <th>Tipo</th>
+                            <th>Capacidade</th>
+                            <th>Alcance (km)</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {aeronaves.map((aeronave) => (
+                            <tr key={aeronave.id}>
+                                <td>{aeronave.codigo}</td>
+                                <td>{aeronave.modelo}</td>
+                                <td>{aeronave.tipo}</td>
+                                <td>{aeronave.capacidade}</td>
+                                <td>{aeronave.alcance}</td>
+                                <td>
+                                    <button
+                                        className="btn-secondary"
+                                        onClick={() => handleVerDetalhes(aeronave.id)}
+                                    >
+                                        Detalhes
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
 
-      {modalAberto && (
-        <ModalCadAero
-          onClose={() => setModalAberto(false)}
-          onSubmit={handleCriarAeronave}
-        />
-      )}
-    </div>
-  );
-}
+            {showModalCad && (
+                <ModalCadAero onClose={handleCloseModal} />
+            )}
+        </div>
+    );
+};
+
+export default Aeronaves;

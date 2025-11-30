@@ -17,6 +17,12 @@ enum TipoPeca {
   IMPORTADA
 }
 
+enum StatusPeca {
+  PRODUCAO
+  TRANSPORTE
+  PRONTA
+}
+
 enum StatusEtapa {
   PENDENTE
   ANDAMENTO
@@ -56,8 +62,8 @@ model Funcionario {
 }
 
 model Aeronave {
-  id          Int           @id @default(autoincrement())
-  codigo      String        @unique
+  id          Int             @id @default(autoincrement())
+  codigo      String          @unique
   modelo      String
   tipo        TipoAeronave
   capacidade  Int
@@ -65,35 +71,36 @@ model Aeronave {
   pecas       Peca[]
   etapas      Etapa[]
   testes      Teste[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   @@map("aeronaves")
 }
 
 model Peca {
-  id          Int       @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   nome        String
   tipo        TipoPeca
   fornecedor  String
+  status      StatusPeca   @default(PRODUCAO)
   aeronaveId  Int
-  aeronave    Aeronave  @relation(fields: [aeronaveId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  aeronave    Aeronave     @relation(fields: [aeronaveId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@map("pecas")
 }
 
 model Etapa {
-  id              Int           @id @default(autoincrement())
-  nome            String
-  prazo           DateTime
-  status          StatusEtapa   @default(PENDENTE)
-  aeronaveId      Int
-  aeronave        Aeronave      @relation(fields: [aeronaveId], references: [id], onDelete: Cascade)
-  funcionarios    Funcionario[]
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id             Int               @id @default(autoincrement())
+  nome           String
+  prazo          DateTime
+  status         StatusEtapa       @default(PENDENTE)
+  aeronaveId     Int
+  aeronave       Aeronave          @relation(fields: [aeronaveId], references: [id], onDelete: Cascade)
+  funcionarios   Funcionario[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
   @@map("etapas")
 }
@@ -108,4 +115,17 @@ model Teste {
   updatedAt   DateTime        @updatedAt
 
   @@map("testes")
+}
+
+model MetricaRequisicao {
+  id                    Int       @id @default(autoincrement())
+  metodo                String
+  rota                  String
+  latenciaMs            Float
+  tempoProcessamentoMs  Float
+  tempoRespostaMs       Float
+  timestamp             DateTime  @default(now())
+  statusCode            Int
+
+  @@map("metricas_requisicao")
 }

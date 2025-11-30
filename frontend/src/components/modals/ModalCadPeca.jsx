@@ -1,112 +1,77 @@
-import React, { useState } from 'react';
-import '../../styles/modalcadaero.css'; 
+import { useState } from 'react'
+import { pecaService } from '../../services/pecaService'
+import '../../styles/modalcadaero.css'
 
-function ModalCadPeca({ onClose, codigoAeronave }) {
-  const [formData, setFormData] = useState({
-    nomePeca: '',
-    tipo: 'nacional',
-    fornecedor: '',
-  });
+const ModalCadPeca = ({ aeronaveId, onClose }) => {
+    const [form, setForm] = useState({
+        nome: '',
+        tipo: 'NACIONAL',
+        fornecedor: '',
+        status: 'PRODUCAO',
+    })
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const listaGeral = JSON.parse(localStorage.getItem('aeronaves')) || [];
-    
-    const aeronaveIndex = listaGeral.findIndex(a => String(a.codigo) === String(codigoAeronave));
-
-    if (aeronaveIndex === -1) {
-      alert("Erro: Aeronave não encontrada. Não foi possível salvar.");
-      return;
+    const handleChange = (e) => {
+        const { name, value } = e.target
+        setForm((prev) => ({ ...prev, [name]: value }))
     }
 
-    const novaPeca = {
-      id: `p${new Date().getTime()}`, 
-      nome: formData.nomePeca,
-      tipo: formData.tipo,
-      fornecedor: formData.fornecedor,
-      qtd: 1, 
-    };
-
-    if (!listaGeral[aeronaveIndex].pecas) {
-      listaGeral[aeronaveIndex].pecas = [];
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        try {
+            await pecaService.create({
+                nome: form.nome,
+                tipo: form.tipo,
+                fornecedor: form.fornecedor,
+                status: form.status,
+                aeronaveId,
+            })
+            onClose(true)
+        } catch (error) {
+            console.error('Erro ao cadastrar peça:', error)
+            alert('Erro ao cadastrar peça')
+        }
     }
 
-    listaGeral[aeronaveIndex].pecas.push(novaPeca);
-
-    localStorage.setItem('aeronaves', JSON.stringify(listaGeral));
-
-    onClose();
-  };
-
-  return (
-    <>
-      <div className="modal-overlay" onClick={onClose}></div>
-
-      <div className="modal-drawer">
-        <h2>Cadastrar Nova Peça</h2>
-
-        <form className="modal-form" onSubmit={handleSubmit}>
-          
-          <div className="form-group">
-            <label>Código da Aeronave</label>
-            <input
-              type="text"
-              name="codigo"
-              value={codigoAeronave}
-              disabled
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Nome da Peça</label>
-            <input
-              type="text"
-              name="nomePeca"
-              value={formData.nomePeca}
-              onChange={handleChange}
-              placeholder="Ex: Turbina"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Tipo</label>
-            <select name="tipo" value={formData.tipo} onChange={handleChange}>
-              <option value="nacional">Nacional</option>
-              <option value="importada">Importada</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Fornecedor</label>
-            <input
-              type="text"
-              name="fornecedor"
-              value={formData.fornecedor}
-              onChange={handleChange}
-              placeholder="Ex: Rolls-Royce"
-              required
-            />
-          </div>
-
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn-cancel">
-              Cancelar
-            </button>
-            <button type="submit" className="btn-save">
-              Salvar
-            </button>
-          </div>
-        </form>
-      </div>
-    </>
-  );
+    return (
+        <div className="modal-overlay">
+            <div className="modal">
+                <h2>Cadastrar Peça</h2>
+                <form onSubmit={handleSubmit} className="modal-form">
+                    <label>
+                        Nome
+                        <input name="nome" value={form.nome} onChange={handleChange} required />
+                    </label>
+                    <label>
+                        Tipo
+                        <select name="tipo" value={form.tipo} onChange={handleChange}>
+                            <option value="NACIONAL">Nacional</option>
+                            <option value="IMPORTADA">Importada</option>
+                        </select>
+                    </label>
+                    <label>
+                        Fornecedor
+                        <input name="fornecedor" value={form.fornecedor} onChange={handleChange} required />
+                    </label>
+                    <label>
+                        Status
+                        <select name="status" value={form.status} onChange={handleChange}>
+                            <option value="PRODUCAO">Produção</option>
+                            <option value="TRANSPORTE">Transporte</option>
+                            <option value="PRONTA">Pronta</option>
+                        </select>
+                    </label>
+                    <div className="modal-actions">
+                        <button type="button" className="btn-secondary" onClick={() => onClose(false)}>
+                            Cancelar
+                        </button>
+                        <button type="submit" className="btn-primary">
+                            Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
 }
 
-export default ModalCadPeca;
+export default ModalCadPeca

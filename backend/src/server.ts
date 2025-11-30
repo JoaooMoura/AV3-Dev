@@ -1,56 +1,42 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import aeronaveRoutes from './routes/aeronaveRoutes';
-import funcionarioRoutes from './routes/funcionarioRoutes';
-import pecaRoutes from './routes/pecaRoutes';
-import etapaRoutes from './routes/etapaRoutes';
-import testeRoutes from './routes/testeRoutes';
-import authRoutes from './routes/authRoutes';
-import relatorioRoutes from './routes/relatorioRoutes';
-import { performanceMiddleware } from './middleware/performanceMiddleware';
-import { errorHandler } from './middleware/errorHandler';
+import express from 'express'
+import cors from 'cors'
+import dotenv from 'dotenv'
+import { metricsMiddleware } from './middlewares/metrics.middleware.js'
+import aeronaveRoutes from './routes/aeronave.routes.js'
+import funcionarioRoutes from './routes/funcionario.routes.js'
+import pecaRoutes from './routes/peca.routes.js'
+import etapaRoutes from './routes/etapa.routes.js'
+import testeRoutes from './routes/teste.routes.js'
+import metricasRoutes from './routes/metricas.routes.js'
 
-dotenv.config();
+dotenv.config()
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const app = express()
+const PORT = process.env.PORT || 3001
 
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
-  credentials: true,
-}));
+app.use(cors())
+app.use(express.json())
+app.use(metricsMiddleware)
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(performanceMiddleware);
+app.use('/api/aeronaves', aeronaveRoutes)
+app.use('/api/funcionarios', funcionarioRoutes)
+app.use('/api/pecas', pecaRoutes)
+app.use('/api/etapas', etapaRoutes)
+app.use('/api/testes', testeRoutes)
+app.use('/api/metricas', metricasRoutes)
 
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'API AeroCode - Sistema de Gestão de Aeronaves',
-    version: '1.0.0',
-    status: 'online'
-  });
-});
-
-app.use('/api/auth', authRoutes);
-app.use('/api/aeronaves', aeronaveRoutes);
-app.use('/api/funcionarios', funcionarioRoutes);
-app.use('/api/pecas', pecaRoutes);
-app.use('/api/etapas', etapaRoutes);
-app.use('/api/testes', testeRoutes);
-app.use('/api/relatorios', relatorioRoutes);
-
-app.use(errorHandler);
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
 
 app.listen(PORT, () => {
-  console.log('==========================================');
-  console.log('  🚀 Servidor AeroCode Iniciado');
-  console.log('==========================================');
-  console.log(`  📡 Porta: ${PORT}`);
-  console.log(`  🌐 URL: http://localhost:${PORT}`);
-  console.log(`  📚 API: http://localhost:${PORT}/api`);
-  console.log('==========================================');
-});
-
-export default app;
+  console.log(`🚀 Servidor rodando na porta ${PORT}`)
+  console.log(`📊 Health check: http://localhost:${PORT}/health`)
+  console.log(`📋 Endpoints disponíveis:`)
+  console.log(`   - GET/POST    /api/aeronaves`)
+  console.log(`   - GET/POST    /api/funcionarios`)
+  console.log(`   - GET/POST    /api/pecas`)
+  console.log(`   - GET/POST    /api/etapas`)
+  console.log(`   - GET/POST    /api/testes`)
+  console.log(`   - GET         /api/metricas`)
+})

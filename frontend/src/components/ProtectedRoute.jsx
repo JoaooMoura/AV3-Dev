@@ -1,18 +1,8 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom'
 
-function ProtectedRoute({ user, allowedRoles, children }) {
-  if (!user) {
-    return <Navigate to="/" />;
-  }
-
-  const userRole = user.permissao || user.nivel;
-  
-  if (!allowedRoles.includes(userRole)) {
-    return <Navigate to="/dashboard" />;
-  }
-  
-  return children;
+const ProtectedRoute = ({ isAuthenticated, children }) => {
+return isAuthenticated ? children : <Navigate to="/login" replace />
 }
 
-export default ProtectedRoute;
+export default ProtectedRoute
+

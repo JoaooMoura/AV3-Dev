@@ -1,154 +1,82 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from 'recharts';
-import { aeronaveService, relatorioService } from '../services/api';
+import { useState, useEffect } from 'react';
+import { aeronaveService } from '../services/aeronaveService';
+import { funcionarioService } from '../services/funcionarioService';
 import '../styles/dashboard.css';
 
-function Dashboard({ user }) {
-  const [aeronaves, setAeronaves] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+const Dashboard = () => {
+    const [stats, setStats] = useState({
+        totalAeronaves: 0,
+        totalFuncionarios: 0,
+        aeronavesComerciais: 0,
+        aeronavesMilitares: 0,
+    });
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    carregarDados();
-  }, []);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [aeronaves, funcionarios] = await Promise.all([
+                    aeronaveService.getAll(),
+                    funcionarioService.getAll(),
+                ]);
 
-  const carregarDados = async () => {
-    try {
-      setLoading(true);
-      const [aeronavesResponse, statsResponse] = await Promise.all([
-        aeronaveService.listar(),
-        relatorioService.dashboard(),
-      ]);
-      
-      setAeronaves(aeronavesResponse.data);
-      setStats(statsResponse.data);
-    } catch (err) {
-      console.error('Erro ao carregar dados:', err);
-      setError('Erro ao carregar dashboard');
-    } finally {
-      setLoading(false);
-    }
-  };
+                const comerciais = aeronaves.filter(a => a.tipo === 'COMERCIAL').length;
+                const militares = aeronaves.filter(a => a.tipo === 'MILITAR').length;
 
-  const chartData = useMemo(() => {
-    if (!aeronaves || aeronaves.length === 0) return [];
-    
-    return aeronaves.map((a) => ({
-      name: a.modelo,
-      etapasAtuais: a.etapas?.filter(e => e.status === 'CONCLUIDA').length || 0,
-      etapasTotais: a.etapas?.length || 0,
-    }));
-  }, [aeronaves]);
+                setStats({
+                    totalAeronaves: aeronaves.length,
+                    totalFuncionarios: funcionarios.length,
+                    aeronavesComerciais: comerciais,
+                    aeronavesMilitares: militares,
+                });
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  const totalAeronaves = aeronaves.length;
-  const etapasConcluidas = stats?.etapasConcluidas || 0;
+        fetchData();
+    }, []);
 
-  const values = chartData.map((item) => item.etapasAtuais);
-  const minEtapas = Math.min(...values) || 0;
-  const maxEtapas = Math.max(...values) || 0;
-
-  const getBarColor = (value) => {
-    const minLightness = 80;
-    const maxLightness = 50;
-    const HUE = 24;
-    const SATURATION = 100;
-
-    if (maxEtapas === minEtapas) {
-      return `hsl(${HUE}, ${SATURATION}%, 50%)`;
+    if (loading) {
+        return (
+            <div className="dashboard">
+                <h1>Carregando...</h1>
+            </div>
+        );
     }
 
-    const percent = (value - minEtapas) / (maxEtapas - minEtapas);
-    const lightness = minLightness - percent * (minLightness - maxLightness);
-    return `hsl(${HUE}, ${SATURATION}%, ${lightness}%)`;
-  };
-
-  if (loading) {
     return (
-      <div className="dashboard-container">
-        <div className="loading">Carregando dashboard...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="dashboard-container">
-        <div className="error">{error}</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="dashboard-container">
-      <h1>Seja Bem-Vindo, {user?.nome || 'Colaborador'}</h1>
-
-      <div className="main-content">
-        <div className="chart-section">
-          <h2>Aeronaves</h2>
-          <div className="chart-wrapper">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={450}>
-                <BarChart
-                  data={chartData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
-                  <XAxis dataKey="name" stroke="#333" />
-                  <YAxis stroke="#333" />
-                  <Tooltip
-                    wrapperStyle={{
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #FF6600',
-                      borderRadius: '8px',
-                      boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
-                    }}
-                    labelStyle={{
-                      color: '#333',
-                      fontWeight: 'bold',
-                      marginBottom: '5px',
-                    }}
-                    formatter={(value) => [`${value}`, 'Etapas concluídas']}
-                  />
-                  <Bar dataKey="etapasAtuais">
-                    {chartData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={getBarColor(entry.etapasAtuais)}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="no-data">Nenhuma aeronave cadastrada</div>
-            )}
-          </div>
+        <div className="dashboard">
+            <h1>Dashboard</h1>
+            <div className="dashboard-cards">
+                <div className="card">
+                    <h3>Total de Aeronaves</h3>
+                    <p>{stats.totalAeronaves}</p>
+                </div>
+                <div className="card">
+                    <h3>Total de Funcionários</h3>
+                    <p>{stats.totalFuncionarios}</p>
+                </div>
+                <div className="card">
+                    <h3>Aeronaves Comerciais</h3>
+                    <p>{stats.aeronavesComerciais}</p>
+                </div>
+                <div className="card">
+                    <h3>Aeronaves Militares</h3>
+                    <p>{stats.aeronavesMilitares}</p>
+                </div>
+            </div>
+            <div className="dashboard-section">
+                <h2>Bem-vindo ao Sistema Aerocode</h2>
+                <p>
+                    Sistema de gestão de produção de aeronaves desenvolvido para as maiores
+                    fabricantes do mundo.
+                </p>
+            </div>
         </div>
-
-        <div className="indicators-section">
-          <div className="card">
-            <span className="indicator-value">{etapasConcluidas}</span>
-            <span className="indicator-label">Etapas concluídas</span>
-          </div>
-
-          <div className="card">
-            <span className="indicator-value">{totalAeronaves}</span>
-            <span className="indicator-label">Total Aeronaves</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+    );
+};
 
 export default Dashboard;

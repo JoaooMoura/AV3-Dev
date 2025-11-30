@@ -1,119 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import '../../styles/modalassofun.css'; 
-import funcionariosMock from '../../mock/funcionarios.json'
+import { useEffect, useState } from 'react'
+import { funcionarioService } from '../../services/funcionarioService'
+import { etapaService } from '../../services/etapaService'
+import '../../styles/modalassofun.css'
 
-function ModalAssocFuncionario({ codigoAeronave, onClose }) {
-  const [formData, setFormData] = useState({
-    nomeEtapa: '',
-    funcionarioNome: '', 
-  });
+const ModalAssoFun = ({ etapaId, onClose }) => {
+    const [funcionarios, setFuncionarios] = useState([])
+    const [selecionados, setSelecionados] = useState([])
 
-  const [etapas, setEtapas] = useState([]);
-  const [funcionarios, setFuncionarios] = useState([]);
-
-  useEffect(() => {
-    const listaGeral = JSON.parse(localStorage.getItem('aeronaves')) || [];
-    const aeronave = listaGeral.find((a) => String(a.codigo) === String(codigoAeronave));
-    if (aeronave?.etapas?.lista) {
-      setEtapas(aeronave.etapas.lista);
-    }
-    
-    setFuncionarios(funcionariosMock || []);
-
-  }, [codigoAeronave]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const listaGeral = JSON.parse(localStorage.getItem('aeronaves')) || [];
-    const aeronaveIndex = listaGeral.findIndex(
-      (a) => String(a.codigo) === String(codigoAeronave)
-    );
-
-    if (aeronaveIndex !== -1) {
-      const novasEtapas = listaGeral[aeronaveIndex].etapas.lista.map((etapa) => {
-        if (etapa.nome === formData.nomeEtapa) {
-          return { ...etapa, funcionario: formData.funcionarioNome };
+    useEffect(() => {
+        const carregar = async () => {
+            try {
+                const data = await funcionarioService.getAll()
+                setFuncionarios(data)
+            } catch (error) {
+                console.error('Erro ao carregar funcionários:', error)
+            }
         }
-        return etapa;
-      });
+        carregar()
+    }, [])
 
-      listaGeral[aeronaveIndex].etapas.lista = novasEtapas;
-      localStorage.setItem('aeronaves', JSON.stringify(listaGeral));
+    const toggleFuncionario = (id) => {
+        setSelecionados((prev) =>
+            prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id],
+        )
     }
 
-    onClose();
-  };
+    const handleSalvar = async () => {
+        try {
+            await etapaService.update(etapaId, { funcionarioIds: selecionados })
+            onClose(true)
+        } catch (error) {
+            console.error('Erro ao associar funcionários:', error)
+            alert('Erro ao associar funcionários')
+        }
+    }
 
-  return (
-    <>
-      <div className="modal-overlay" onClick={onClose}></div>
-
-      <div className="modal-drawer">
-        <h2>Associar Funcionário à Etapa</h2>
-
-        <form className="modal-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Código da Aeronave</label>
-            <input
-              type="text"
-              name="codigo"
-              value={codigoAeronave}
-              disabled
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Nome da Etapa</label>
-            <select
-              name="nomeEtapa"
-              value={formData.nomeEtapa}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Selecione uma etapa</option>
-              {etapas.filter(e => e.status !== 'concluida').map((etapa, index) => (
-                <option key={index} value={etapa.nome}>
-                  {etapa.nome} (Status: {etapa.status})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Funcionário</label>
-            <select
-              name="funcionarioNome"
-              value={formData.funcionarioNome}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Selecione um funcionário</option>
-              {funcionarios.filter(f => f.nivel !== 'administrador').map((func) => (
-                <option key={func.id} value={func.nome}>
-                  {func.nome} ({func.nivel})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn-cancel">
-              Cancelar
-            </button>
-            <button type="submit" className="btn-save">
-              Salvar
-            </button>
-          </div>
-        </form>
-      </div>
-    </>
-  );
+    return (
+        <div className="modal-overlay">
+            <div className="modal">
+                <h2>Associar Funcionários à Etapa</h2>
+                <div className="lista-funcionarios">
+                    {funcionarios.map((f) => (
+                        <label key={f.id} className="linha-funcionario">
+                            <input
+                                type="checkbox"
+                                checked={selecionados.includes(f.id)}
+                                onChange={() => toggleFuncionario(f.id)}
+                            />
+                            <span>{f.nome} - {f.nivelPermissao}</span>
+                        </label>
+                    ))}
+                </div>
+                <div className="modal-actions">
+                    <button className="btn-secondary" onClick={() => onClose(false)}>
+                        Cancelar
+                    </button>
+                    <button className="btn-primary" onClick={handleSalvar}>
+                        Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
 }
 
-export default ModalAssocFuncionario;
+export default ModalAssoFun
